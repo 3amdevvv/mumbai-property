@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MumbaiHomes — Budget Match</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="/static/data.js"></script>
+<style>
+:root{--bg:#07090e;--s1:#0c0f17;--s2:#111520;--b1:#192033;--b2:#222d44;--b3:#2d3d58;--tx:#dae0ee;--mu:#566070;--mu2:#7a8a9e;--ac:#f97316;--gn:#10b981;--gng:rgba(16,185,129,.15);--yw:#f59e0b;--ywg:rgba(245,158,11,.15);--bl:#6366f1;--blg:rgba(99,102,241,.15)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif}
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--b1);background:rgba(7,9,14,.96);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-.4px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--tx)}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+.logo span{color:var(--ac)}
+nav{display:flex;gap:2px;background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:3px}
+.nv{padding:6px 16px;border-radius:6px;border:1px solid transparent;background:none;color:var(--mu2);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all .18s;display:flex;align-items:center;gap:5px}
+.nv:hover{color:var(--tx)}.nv.on{background:var(--s2);border-color:var(--b2);color:var(--tx)}
+.wrap{max-width:1060px;margin:0 auto;padding:40px 28px}
+.pg-title h1{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;margin-bottom:6px;letter-spacing:-.4px}
+.pg-title p{color:var(--mu2);font-size:.9rem;margin-bottom:28px}
+.form-card{background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:24px 28px;display:grid;grid-template-columns:1fr 1fr auto;gap:18px;align-items:end;margin-bottom:32px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{font-size:.68rem;text-transform:uppercase;letter-spacing:1.1px;color:var(--mu);font-weight:600}
+.field input,.field select{background:var(--bg);border:1px solid var(--b2);border-radius:8px;padding:10px 13px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s,box-shadow .2s;width:100%}
+.field input:focus,.field select:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(249,115,22,.14)}
+.field input.err{border-color:#ef4444}
+.field select option{background:var(--s2)}
+.go-btn{background:var(--ac);border:none;border-radius:8px;padding:10px 24px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;transition:opacity .18s,transform .1s;white-space:nowrap}
+.go-btn:hover{opacity:.88}.go-btn:active{transform:scale(.97)}
+.results{display:none}.results.show{display:block}
+.res-header{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+.res-header h2{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.res-count{background:var(--ac);color:#fff;border-radius:20px;padding:2px 11px;font-size:.72rem;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:13px}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:17px 18px;cursor:pointer;transition:border-color .18s,transform .15s;animation:rise .28s ease both}
+.card:hover{border-color:var(--b3);transform:translateY(-2px)}
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.card-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.93rem;display:flex;align-items:center;gap:7px}
+.card-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.card-sub{font-size:.72rem;color:var(--mu);margin-top:2px}
+.badge{font-size:.67rem;font-weight:600;padding:3px 8px;border-radius:5px;white-space:nowrap}
+.badge.perfect{background:rgba(16,185,129,.13);color:var(--gn)}
+.badge.good{background:rgba(245,158,11,.13);color:var(--yw)}
+.badge.stretch{background:rgba(239,68,68,.1);color:#f87171}
+.prices{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}
+.prow{display:flex;justify-content:space-between;font-size:.81rem}
+.plbl{color:var(--mu2)}.pval{font-weight:600}.pval.hi{color:var(--ac)}
+.card-foot{display:flex;justify-content:space-between;font-size:.72rem;color:var(--mu);border-top:1px solid var(--b1);padding-top:10px}
+.card-foot strong{color:var(--tx)}
+.empty-msg{padding:48px;text-align:center;color:var(--mu);font-size:.88rem}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <a href="map.html" class="logo"><div class="logo-dot"></div>Mumbai<span>Homes</span></a>
+  <nav>
+    <a href="map.html" class="nv">🗺 Property Map</a>
+    <a href="budget.html" class="nv on">💰 Budget Match</a>
+    <a href="ai-advisor.html" class="nv">✦ AI Advisor</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="pg-title">
+    <h1>Budget-Based Locality Finder</h1>
+    <p>Enter your budget and BHK preference — we'll match the best localities across Mumbai.</p>
+  </div>
+
+  <div class="form-card">
+    <div class="field">
+      <label>Your Budget (&#x20b9; Lakhs)</label>
+      <input type="number" id="budget" placeholder="e.g. 150" min="5">
+    </div>
+    <div class="field">
+      <label>BHK Requirement</label>
+      <select id="bhk">
+        <option value="any">Any BHK</option>
+        <option value="1">1 BHK</option>
+        <option value="2">2 BHK</option>
+        <option value="3">3 BHK</option>
+      </select>
+    </div>
+    <button class="go-btn" onclick="runSearch()">Find Localities &#x2192;</button>
+  </div>
+
+  <div class="results" id="results">
+    <div class="res-header">
+      <h2 id="res-title">Matching Localities</h2>
+      <span class="res-count" id="res-count">0 found</span>
+    </div>
+    <div class="grid" id="res-grid"></div>
+  </div>
+</div>
+
+<script>
+const colDots = {green:'var(--gn)',yellow:'var(--yw)',blue:'var(--bl)'};
+const matchLabels = {perfect:'✓ Within Budget',good:'~ Near Budget',stretch:'↑ Slight Stretch'};
+
+function runSearch(){
+  const budgetEl = document.getElementById('budget');
+  const budget = parseFloat(budgetEl.value);
+  const bhk    = document.getElementById('bhk').value;
+
+  if(!budget || budget <= 0){
+    budgetEl.classList.add('err');
+    setTimeout(()=>budgetEl.classList.remove('err'), 1500);
+    return;
+  }
+
+  let results = [];
+  MUMBAI_DATA.regions.forEach(r => {
+    let target = r.avgPrice;
+    if(bhk === '1') target = r.bhk1 || r.avgPrice;
+    else if(bhk === '2') target = r.bhk2 || r.avgPrice;
+    else if(bhk === '3') target = r.bhk3 || r.avgPrice;
+    if(target <= 0) return;
+
+    const pct = (target - budget) / budget;
+    const match = pct <= 0 ? 'perfect' : pct <= 0.2 ? 'good' : pct <= 0.35 ? 'stretch' : null;
+    if(!match) return;
+    results.push({...r, target, match});
+  });
+
+  results.sort((a,b)=>{
+    const ord = {perfect:0,good:1,stretch:2};
+    return ord[a.match] - ord[b.match] || Math.abs(a.target-budget) - Math.abs(b.target-budget);
+  });
+
+  renderResults(results, budget, bhk);
+}
+
+function renderResults(results, budget, bhk){
+  const box   = document.getElementById('results');
+  const grid  = document.getElementById('res-grid');
+  const title = document.getElementById('res-title');
+  const count = document.getElementById('res-count');
+
+  box.classList.add('show');
+  grid.innerHTML = '';
+  title.textContent = `Matches for \u20b9${budget.toLocaleString('en-IN')}L${bhk!=='any' ? ' \u00b7 '+bhk+' BHK':''}`;
+  count.textContent = results.length + ' found';
+
+  if(!results.length){
+    grid.innerHTML = '<div class="empty-msg">No localities found within this budget. Try increasing your amount or broadening BHK selection.</div>';
+    return;
+  }
+
+  results.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.animationDelay = (i * 0.03) + 's';
+    card.innerHTML = `
+      <div class="card-top">
+        <div>
+          <div class="card-name">
+            <span class="card-dot" style="background:${colDots[r.color]}"></span>
+            ${r.region}
+          </div>
+          <div class="card-sub">${r.type} &middot; ${r.readyPct}% Ready to Move</div>
+        </div>
+        <span class="badge ${r.match}">${matchLabels[r.match]}</span>
+      </div>
+      <div class="prices">
+        <div class="prow"><span class="plbl">1 BHK</span><span class="pval ${bhk==='1'?'hi':''}">${r.bhk1>0?fmtPrice(r.bhk1):'&#8212;'}</span></div>
+        <div class="prow"><span class="plbl">2 BHK</span><span class="pval ${bhk==='2'?'hi':''}">${r.bhk2>0?fmtPrice(r.bhk2):'&#8212;'}</span></div>
+        <div class="prow"><span class="plbl">3 BHK</span><span class="pval ${bhk==='3'?'hi':''}">${r.bhk3>0?fmtPrice(r.bhk3):'&#8212;'}</span></div>
+      </div>
+      <div class="card-foot">
+        <span>&#x20b9;<strong>${Math.round(r.psf).toLocaleString('en-IN')}</strong>/sqft</span>
+        <span>Avg: ${fmtPrice(r.avgPrice)}</span>
+      </div>`;
+
+    // Click → go to map, highlight locality
+    card.addEventListener('click', () => {
+      sessionStorage.setItem('highlight', r.region);
+      window.location.href = 'map.html';
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+// Allow pressing Enter in budget field
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('budget').addEventListener('keydown', e => {
+    if(e.key === 'Enter') runSearch();
+  });
+});
+</script>
+</body>
+</html>

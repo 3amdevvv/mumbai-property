@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MumbaiHomes — Property Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="/static/data.js"></script>
+<style>
+:root{--bg:#07090e;--s1:#0c0f17;--s2:#111520;--b1:#192033;--b2:#222d44;--b3:#2d3d58;--tx:#dae0ee;--mu:#566070;--mu2:#7a8a9e;--ac:#f97316;--gn:#10b981;--gng:rgba(16,185,129,.15);--yw:#f59e0b;--ywg:rgba(245,158,11,.15);--bl:#6366f1;--blg:rgba(99,102,241,.15)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;display:flex;flex-direction:column}
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--b1);background:rgba(7,9,14,.96);backdrop-filter:blur(20px);position:relative;z-index:1000;flex-shrink:0}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-.4px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--tx)}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+.logo span{color:var(--ac)}
+nav{display:flex;gap:2px;background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:3px}
+.nv{padding:6px 16px;border-radius:6px;border:1px solid transparent;background:none;color:var(--mu2);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all .18s;display:flex;align-items:center;gap:5px}
+.nv:hover{color:var(--tx)}
+.nv.on{background:var(--s2);border-color:var(--b2);color:var(--tx)}
+.toolbar{height:50px;display:flex;align-items:center;gap:12px;padding:0 18px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0;z-index:2}
+.sw{position:relative}
+.sw input{width:210px;background:var(--bg);border:1px solid var(--b2);border-radius:7px;padding:7px 11px 7px 30px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none;transition:border-color .2s}
+.sw input:focus{border-color:var(--ac)}
+.sw-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:.72rem;color:var(--mu);pointer-events:none}
+.filters{display:flex;gap:4px;margin-left:auto}
+.fbtn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:5px;border:1px solid var(--b1);background:none;color:var(--mu2);font-family:'DM Sans',sans-serif;font-size:.76rem;font-weight:500;cursor:pointer;transition:all .16s}
+.fbtn .dot{width:7px;height:7px;border-radius:50%}
+.fbtn.on{background:var(--s2);border-color:var(--b2);color:var(--tx)}
+.fbtn:hover:not(.on){color:var(--tx)}
+.layout{display:grid;grid-template-columns:1fr 344px;flex:1;overflow:hidden;min-height:0}
+.map-wrap{position:relative;overflow:hidden}
+#map{width:100%;height:100%}
+.leaflet-tile{filter:brightness(0.42) saturate(0.25) hue-rotate(195deg) contrast(1.12)}
+.bbl{border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;text-align:center;line-height:1.1;word-break:break-word;overflow:hidden;padding:3px;cursor:pointer}
+.bbl:hover{transform:scale(1.18)!important;z-index:999!important}
+.bbl.sel{transform:scale(1.22)!important;z-index:1000!important}
+.bbl.green{background:rgba(16,185,129,.18);border:2px solid rgba(16,185,129,.65);color:#34d399}
+.bbl.yellow{background:rgba(245,158,11,.18);border:2px solid rgba(245,158,11,.65);color:#fbbf24}
+.bbl.blue{background:rgba(99,102,241,.2);border:2px solid rgba(99,102,241,.7);color:#a5b4fc}
+.bbl.green.sel{box-shadow:0 0 0 4px rgba(16,185,129,.25),0 0 20px rgba(16,185,129,.2)}
+.bbl.yellow.sel{box-shadow:0 0 0 4px rgba(245,158,11,.25),0 0 20px rgba(245,158,11,.2)}
+.bbl.blue.sel{box-shadow:0 0 0 4px rgba(99,102,241,.25),0 0 20px rgba(99,102,241,.2)}
+.bbl.hidden{opacity:0!important;pointer-events:none!important}
+.leaflet-popup-content-wrapper{background:var(--s2)!important;border:1px solid var(--b2)!important;border-radius:11px!important;box-shadow:0 8px 32px rgba(0,0,0,.65)!important;color:var(--tx)!important;font-family:'DM Sans',sans-serif!important;padding:0!important}
+.leaflet-popup-tip{background:var(--s2)!important}
+.leaflet-popup-content{margin:0!important;width:auto!important;min-width:200px}
+.leaflet-popup-close-button{color:var(--mu2)!important;font-size:18px!important;top:8px!important;right:10px!important}
+.leaflet-popup-close-button:hover{color:var(--tx)!important}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--s2)!important;border-color:var(--b2)!important;color:var(--tx)!important}
+.leaflet-control-attribution{background:rgba(7,9,14,.8)!important;color:var(--mu)!important;font-size:.65rem!important}
+.leaflet-control-attribution a{color:var(--mu2)!important}
+.pop{padding:15px 17px}
+.pop-name{font-family:'Syne',sans-serif;font-weight:800;font-size:.94rem;margin-bottom:5px}
+.pop-psf{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:10px}
+.pop-psf.green{color:var(--gn)}.pop-psf.yellow{color:var(--yw)}.pop-psf.blue{color:var(--bl)}
+.pop-row{display:flex;justify-content:space-between;font-size:.78rem;padding:4px 0;border-bottom:1px solid var(--b1)}
+.pop-row:last-child{border-bottom:none}
+.pop-l{color:var(--mu2)}.pop-v{font-weight:600}
+.legend{position:absolute;bottom:24px;left:14px;z-index:400;background:rgba(10,13,22,.93);backdrop-filter:blur(14px);border:1px solid var(--b2);border-radius:12px;padding:13px 16px;display:flex;flex-direction:column;gap:7px}
+.legend h5{font-family:'Syne',sans-serif;font-size:.61rem;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:2px}
+.leg-row{display:flex;align-items:center;gap:8px;font-size:.77rem;color:var(--tx)}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.panel{border-left:1px solid var(--b1);background:var(--s1);overflow-y:auto;display:flex;flex-direction:column}
+.panel::-webkit-scrollbar{width:3px}.panel::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.idle{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--mu);text-align:center;padding:32px}
+.idle-icon{font-size:3rem;opacity:.2;margin-bottom:4px}
+.idle p{font-size:.84rem;line-height:1.65}
+.det{padding:22px 20px;display:none;flex-direction:column;gap:16px}
+.det.show{display:flex}
+.det-name{font-family:'Syne',sans-serif;font-size:1.28rem;font-weight:800;line-height:1.2}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:20px;font-size:.7rem;font-weight:600;width:fit-content;margin-top:6px}
+.pill.green{background:var(--gng);color:var(--gn)}.pill.yellow{background:var(--ywg);color:var(--yw)}.pill.blue{background:var(--blg);color:var(--bl)}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sc{background:var(--bg);border:1px solid var(--b1);border-radius:9px;padding:11px 13px}
+.sc.f{grid-column:1/-1}
+.sl{font-size:.66rem;text-transform:uppercase;letter-spacing:1.1px;color:var(--mu);margin-bottom:4px;font-weight:600}
+.sv{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700}
+.sv.green{color:var(--gn)}.sv.yellow{color:var(--yw)}.sv.blue{color:var(--bl)}.sv.ac{color:var(--ac)}
+.ss{font-size:.7rem;color:var(--mu);margin-top:2px}
+.bhlbl{font-size:.66rem;text-transform:uppercase;letter-spacing:1.1px;color:var(--mu);font-weight:600;display:block;margin-bottom:8px}
+.bhl{display:flex;flex-direction:column;gap:6px}
+.bhr{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border:1px solid var(--b1);border-radius:8px;padding:9px 13px}
+.bhn{font-size:.8rem;color:var(--mu2)}.bhv{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem}
+.bw{background:var(--bg);border:1px solid var(--b1);border-radius:9px;padding:12px 14px}
+.bt{width:100%;height:5px;background:rgba(255,255,255,.06);border-radius:3px;margin-top:8px;overflow:hidden}
+.bf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gn),#6ee7b7);transition:width .5s}
+.bm{display:flex;justify-content:space-between;margin-top:5px;font-size:.7rem;color:var(--mu)}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <a href="map.html" class="logo"><div class="logo-dot"></div>Mumbai<span>Homes</span></a>
+  <nav>
+    <a href="map.html" class="nv on">🗺 Property Map</a>
+    <a href="budget.html" class="nv">💰 Budget Match</a>
+    <a href="ai-advisor.html" class="nv">✦ AI Advisor</a>
+  </nav>
+</header>
+<div class="toolbar">
+  <div class="sw">
+    <span class="sw-icon">🔍</span>
+    <input type="text" id="search" placeholder="Search locality…" oninput="doSearch(this.value)">
+  </div>
+  <div class="filters">
+    <button class="fbtn on" onclick="doFilter('all',this)">All</button>
+    <button class="fbtn" onclick="doFilter('green',this)"><span class="dot" style="background:var(--gn)"></span>Budget</button>
+    <button class="fbtn" onclick="doFilter('yellow',this)"><span class="dot" style="background:var(--yw)"></span>Mid</button>
+    <button class="fbtn" onclick="doFilter('blue',this)"><span class="dot" style="background:var(--bl)"></span>Premium</button>
+  </div>
+</div>
+<div class="layout">
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div class="legend">
+      <h5>Price / sq.ft.</h5>
+      <div class="leg-row"><span class="leg-dot" style="background:var(--gn)"></span>Budget &le; &curren;7,886</div>
+      <div class="leg-row"><span class="leg-dot" style="background:var(--yw)"></span>Mid &curren;7,887&ndash;&curren;20,000</div>
+      <div class="leg-row"><span class="leg-dot" style="background:var(--bl)"></span>Premium &gt; &curren;20,000</div>
+    </div>
+  </div>
+  <aside class="panel">
+    <div class="idle" id="idle">
+      <div class="idle-icon">&#128205;</div>
+      <p>Click any locality bubble on the map to see property prices and details</p>
+    </div>
+    <div class="det" id="det">
+      <div><div class="det-name" id="dn"></div><div class="pill" id="dp"></div></div>
+      <div class="sg">
+        <div class="sc f"><div class="sl">Rate / Sq.Ft.</div><div class="sv ac" id="dpsf"></div><div class="ss">Median market rate</div></div>
+        <div class="sc"><div class="sl">Avg Price</div><div class="sv" id="davg" style="font-size:1rem"></div></div>
+        <div class="sc"><div class="sl">Type</div><div class="sv" id="dtyp" style="font-size:.88rem"></div></div>
+      </div>
+      <div>
+        <span class="bhlbl">BHK Prices (Median)</span>
+        <div class="bhl">
+          <div class="bhr"><span class="bhn">&#127,1 BHK</span><span class="bhv" id="db1">&#8212;</span></div>
+          <div class="bhr"><span class="bhn">&#127,2 BHK</span><span class="bhv" id="db2">&#8212;</span></div>
+          <div class="bhr"><span class="bhn">&#127,3 BHK</span><span class="bhv" id="db3">&#8212;</span></div>
+        </div>
+      </div>
+      <div class="bw">
+        <div class="sl">Ready to Move</div>
+        <div class="bt"><div class="bf" id="dbar" style="width:0%"></div></div>
+        <div class="bm"><span id="drp">0%</span><span>Under Construction</span></div>
+      </div>
+    </div>
+  </aside>
+</div>
+<script>
+let lmap,markers=[],af='all';
+function initMap(){
+  lmap=L.map('map',{center:[19.10,72.93],zoom:11});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom:19
+  }).addTo(lmap);
+  MUMBAI_DATA.regions.forEach(r=>{
+    const ll=REGION_COORDS[r.region];
+    if(!ll)return;
+    const sz=Math.max(36,Math.min(64,36+r.avgPrice/14));
+    const fs=sz<44?'.42rem':sz<54?'.5rem':'.56rem';
+    const lbl=r.region.split(' ').slice(0,2).join(' ');
+    const icon=L.divIcon({
+      className:'',
+      html:`<div class="bbl ${r.color}" style="width:${sz}px;height:${sz}px;font-size:${fs}">${lbl}</div>`,
+      iconSize:[sz,sz],iconAnchor:[sz/2,sz/2],popupAnchor:[0,-(sz/2+8)]
+    });
+    const m=L.marker(ll,{icon});
+    const ph=`<div class="pop"><div class="pop-name">${r.region}</div><div class="pop-psf ${r.color}">&#8377;${Math.round(r.psf).toLocaleString('en-IN')}<small style="font-size:.58em;opacity:.7"> /sqft</small></div><div class="pop-row"><span class="pop-l">Avg Price</span><span class="pop-v">${fmtPrice(r.avgPrice)}</span></div><div class="pop-row"><span class="pop-l">1 BHK</span><span class="pop-v">${r.bhk1>0?fmtPrice(r.bhk1):'N/A'}</span></div><div class="pop-row"><span class="pop-l">2 BHK</span><span class="pop-v">${r.bhk2>0?fmtPrice(r.bhk2):'N/A'}</span></div><div class="pop-row"><span class="pop-l">3 BHK</span><span class="pop-v">${r.bhk3>0?fmtPrice(r.bhk3):'N/A'}</span></div><div class="pop-row"><span class="pop-l">Ready</span><span class="pop-v" style="color:var(--gn)">${r.readyPct}%</span></div></div>`;
+    m.bindPopup(ph,{maxWidth:260,minWidth:200});
+    m.on('click',()=>{
+      markers.forEach(x=>{const e=x.m.getElement()?.querySelector('.bbl');if(e)e.classList.remove('sel');});
+      const e=m.getElement()?.querySelector('.bbl');if(e)e.classList.add('sel');
+      showDet(r);
+    });
+    m.addTo(lmap);
+    markers.push({m,nm:r.region.toLowerCase(),c:r.color,d:r});
+  });
+}
+function showDet(r){
+  document.getElementById('idle').style.display='none';
+  document.getElementById('det').classList.add('show');
+  document.getElementById('dn').textContent=r.region;
+  const lbs={green:'🟢 Budget \u2264 \u20b97,886/sqft',yellow:'🟡 Mid \u20b97,887\u2013\u20b920,000/sqft',blue:'🔵 Premium > \u20b920,000/sqft'};
+  const p=document.getElementById('dp');p.textContent=lbs[r.color];p.className=`pill ${r.color}`;
+  const ps=document.getElementById('dpsf');ps.textContent=`\u20b9${Math.round(r.psf).toLocaleString('en-IN')}`;ps.className=`sv ${r.color}`;
+  document.getElementById('davg').textContent=fmtPrice(r.avgPrice);
+  document.getElementById('dtyp').textContent=r.type;
+  document.getElementById('db1').textContent=r.bhk1>0?fmtPrice(r.bhk1):'N/A';
+  document.getElementById('db2').textContent=r.bhk2>0?fmtPrice(r.bhk2):'N/A';
+  document.getElementById('db3').textContent=r.bhk3>0?fmtPrice(r.bhk3):'N/A';
+  document.getElementById('dbar').style.width=r.readyPct+'%';
+  document.getElementById('drp').textContent=r.readyPct+'% Ready';
+}
+function applyVis(){
+  const q=document.getElementById('search').value.toLowerCase().trim();
+  markers.forEach(({m,nm,c})=>{
+    const e=m.getElement()?.querySelector('.bbl');if(!e)return;
+    const ok=(af==='all'||c===af)&&nm.includes(q);
+    e.classList.toggle('hidden',!ok);
+  });
+}
+function doSearch(v){applyVis();}
+function doFilter(f,btn){
+  af=f;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  applyVis();
+}
+window.addEventListener('load',initMap);
+</script>
+</body>
+</html>

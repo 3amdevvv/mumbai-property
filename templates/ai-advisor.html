@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MumbaiHomes — AI Advisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="/static/data.js"></script>
+<script src="/static/env.js"></script>
+<style>
+:root{--bg:#07090e;--s1:#0c0f17;--s2:#111520;--b1:#192033;--b2:#222d44;--b3:#2d3d58;--tx:#dae0ee;--mu:#566070;--mu2:#7a8a9e;--ac:#f97316;--acg:rgba(249,115,22,.16);--gn:#10b981;--gng:rgba(16,185,129,.14);--yw:#f59e0b;--ywg:rgba(245,158,11,.14);--bl:#6366f1;--blg:rgba(99,102,241,.14)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;display:flex;flex-direction:column}
+
+/* ── HEADER ── */
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--b1);background:rgba(7,9,14,.96);backdrop-filter:blur(20px);position:relative;z-index:100;flex-shrink:0}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-.4px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--tx)}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+.logo span{color:var(--ac)}
+nav{display:flex;gap:2px;background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:3px}
+.nv{padding:6px 16px;border-radius:6px;border:1px solid transparent;background:none;color:var(--mu2);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all .18s;display:flex;align-items:center;gap:5px}
+.nv:hover{color:var(--tx)}.nv.on{background:var(--s2);border-color:var(--b2);color:var(--tx)}
+
+/* ── KEY BANNER ── */
+.key-banner{display:none;background:rgba(249,115,22,.1);border-bottom:1px solid rgba(249,115,22,.2);padding:9px 24px;font-size:.8rem;color:#fbbf24;flex-shrink:0;align-items:center;gap:8px}
+.key-banner.show{display:flex}
+.key-banner a{color:var(--ac);text-decoration:underline;cursor:pointer}
+
+/* ── MAIN LAYOUT ── */
+.layout{display:grid;grid-template-columns:288px 1fr;flex:1;overflow:hidden;min-height:0}
+
+/* ── SIDEBAR ── */
+.sidebar{border-right:1px solid var(--b1);background:var(--s1);padding:20px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:15px}
+.sidebar::-webkit-scrollbar{width:3px}.sidebar::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.sb-title{font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;color:var(--tx);margin-bottom:2px}
+.sb-hint{font-size:.77rem;color:var(--mu);line-height:1.5}
+.pref{display:flex;flex-direction:column;gap:6px}
+.pref label{font-size:.67rem;text-transform:uppercase;letter-spacing:1.1px;color:var(--mu);font-weight:600}
+.pref select,.pref input{background:var(--bg);border:1px solid var(--b2);border-radius:7px;padding:8px 11px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.83rem;outline:none;transition:border-color .2s;width:100%}
+.pref select:focus,.pref input:focus{border-color:var(--ac)}
+.pref select option{background:var(--s2)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:4px 9px;border-radius:5px;border:1px solid var(--b2);background:none;color:var(--mu2);font-size:.73rem;cursor:pointer;transition:all .14s;font-family:'DM Sans',sans-serif}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.chip:hover:not(.on){border-color:var(--mu2);color:var(--tx)}
+.ask-btn{width:100%;background:linear-gradient(135deg,#f97316,#fb923c);border:none;border-radius:8px;padding:12px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;transition:opacity .18s,transform .1s;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px}
+.ask-btn:hover{opacity:.9}.ask-btn:active{transform:scale(.97)}.ask-btn:disabled{opacity:.35;cursor:not-allowed}
+.divider{height:1px;background:var(--b1);margin:4px 0}
+
+/* ── CHAT AREA ── */
+.chat{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.messages{flex:1;overflow-y:auto;padding:24px 26px;display:flex;flex-direction:column;gap:16px}
+.messages::-webkit-scrollbar{width:3px}.messages::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+
+/* Welcome state */
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;color:var(--mu);padding:40px}
+.wic{width:72px;height:72px;border-radius:50%;background:var(--s1);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:2px}
+.welcome h2{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:700;color:var(--tx)}
+.welcome p{font-size:.87rem;line-height:1.65;max-width:420px}
+.examples{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px}
+.eq{padding:8px 13px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--mu2);font-size:.79rem;cursor:pointer;transition:all .16s;text-align:left;font-family:'DM Sans',sans-serif;max-width:300px}
+.eq:hover{border-color:var(--ac);color:var(--tx)}
+
+/* Messages */
+.msg{display:flex;gap:10px;animation:msgIn .22s ease both}
+@keyframes msgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;font-family:'Syne',sans-serif}
+.msg.user .avatar{background:var(--ac);color:#fff}
+.msg.ai .avatar{background:var(--s2);border:1px solid var(--b2);color:var(--mu2)}
+.bubble-wrap{max-width:78%}
+.bubble{padding:12px 16px;border-radius:12px;font-size:.86rem;line-height:1.65}
+.msg.user .bubble{background:var(--ac);color:#fff;border-bottom-right-radius:3px}
+.msg.ai   .bubble{background:var(--s1);border:1px solid var(--b1);color:var(--tx);border-bottom-left-radius:3px}
+.msg-time{font-size:.66rem;color:var(--mu);margin-top:4px;padding:0 4px}
+.msg.user .msg-time{text-align:right}
+
+/* AI response formatting */
+.ai-resp h4{font-family:'Syne',sans-serif;font-size:.93rem;font-weight:700;color:var(--ac);margin:12px 0 5px}
+.ai-resp h4:first-child{margin-top:0}
+.ai-resp strong{font-weight:600;color:var(--tx)}
+.ai-resp ul{padding-left:16px;margin:4px 0}
+.ai-resp li{margin:3px 0;font-size:.84rem}
+.locality-card{background:var(--bg);border:1px solid var(--b2);border-radius:10px;padding:12px 14px;margin:8px 0}
+.lc-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.lc-num{width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lc-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem}
+.lc-band{margin-left:auto;font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:4px}
+.lc-band.green{background:var(--gng);color:var(--gn)}.lc-band.yellow{background:var(--ywg);color:var(--yw)}.lc-band.blue{background:var(--blg);color:var(--bl)}
+
+/* Typing dots */
+.typing span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--mu2);margin:0 2px;animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1}}
+
+/* Input bar */
+.input-bar{border-top:1px solid var(--b1);padding:13px 18px;display:flex;gap:9px;background:var(--s1);flex-shrink:0}
+.input-bar textarea{flex:1;background:var(--bg);border:1px solid var(--b2);border-radius:10px;padding:10px 13px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.87rem;resize:none;outline:none;height:44px;max-height:120px;transition:border-color .2s;line-height:1.5}
+.input-bar textarea:focus{border-color:var(--ac)}
+.send-btn{width:44px;height:44px;border-radius:10px;border:none;background:var(--ac);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .18s;font-size:1.1rem}
+.send-btn:hover{opacity:.85}.send-btn:disabled{opacity:.3;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <a href="map.html" class="logo"><div class="logo-dot"></div>Mumbai<span>Homes</span></a>
+  <nav>
+    <a href="map.html" class="nv">&#128506; Property Map</a>
+    <a href="budget.html" class="nv">&#128176; Budget Match</a>
+    <a href="ai-advisor.html" class="nv on">&#10022; AI Advisor</a>
+  </nav>
+</header>
+
+<!-- API KEY WARNING -->
+<div class="key-banner" id="key-banner">
+  &#9888;&#65039; Gemini API key not set. Open <code>env.js</code> and add your key.
+  Get one free at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="sb-title">&#10022; Your Preferences</div>
+      <p class="sb-hint">Fill in your details and click the button — or just type in the chat below.</p>
+    </div>
+
+    <div class="pref">
+      <label>&#128188; Office / Workplace</label>
+      <select id="p-office">
+        <option value="">&#8212; Select &#8212;</option>
+        <option>Parel</option>
+        <option>BKC / Bandra Kurla Complex</option>
+        <option>Lower Parel</option>
+        <option>Andheri East</option>
+        <option>Andheri West</option>
+        <option>Powai</option>
+        <option>Thane West</option>
+        <option>Navi Mumbai (Belapur / Vashi)</option>
+        <option>Fort / Nariman Point</option>
+        <option>Goregaon East</option>
+        <option>Malad West</option>
+        <option>Kurla</option>
+        <option>Worli</option>
+        <option>Airoli / Ghansoli</option>
+        <option>Kalyan</option>
+        <option>Work from home</option>
+      </select>
+    </div>
+
+    <div class="pref">
+      <label>&#128176; Budget (&#x20b9; Lakhs)</label>
+      <input type="number" id="p-budget" placeholder="e.g. 200">
+    </div>
+
+    <div class="pref">
+      <label>&#127,BHK Configuration</label>
+      <select id="p-bhk">
+        <option value="">&#8212; Any &#8212;</option>
+        <option>1 BHK</option>
+        <option>2 BHK</option>
+        <option>3 BHK</option>
+        <option>4+ BHK</option>
+      </select>
+    </div>
+
+    <div class="pref">
+      <label>&#128106; Lifestyle</label>
+      <select id="p-lifestyle">
+        <option value="">&#8212; Select &#8212;</option>
+        <option>Single professional</option>
+        <option>Young couple</option>
+        <option>Family with school-age kids</option>
+        <option>Joint / extended family</option>
+        <option>Retired couple</option>
+      </select>
+    </div>
+
+    <div class="pref">
+      <label>&#10024; Priorities (tap to select)</label>
+      <div class="chips">
+        <button class="chip" onclick="toggleChip(this)">&#127,Good schools</button>
+        <button class="chip" onclick="toggleChip(this)">&#127,Parks &amp; greenery</button>
+        <button class="chip" onclick="toggleChip(this)">&#128,Metro access</button>
+        <button class="chip" onclick="toggleChip(this)">&#127,Hospitals nearby</button>
+        <button class="chip" onclick="toggleChip(this)">&#127,Sea view</button>
+        <button class="chip" onclick="toggleChip(this)">&#127,Malls &amp; shopping</button>
+        <button class="chip" onclick="toggleChip(this)">&#129,Quiet &amp; peaceful</button>
+        <button class="chip" onclick="toggleChip(this)">&#127,Food &amp; dining scene</button>
+        <button class="chip" onclick="toggleChip(this)">&#128,Short commute</button>
+        <button class="chip" onclick="toggleChip(this)">&#127,Clubhouse &amp; amenities</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <button class="ask-btn" id="ask-btn" onclick="buildAndAsk()">&#10022; Get AI Recommendations</button>
+  </aside>
+
+  <!-- CHAT -->
+  <div class="chat">
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="wic">&#127,</div>
+        <h2>Mumbai Property Advisor</h2>
+        <p>Tell me your workplace, budget, lifestyle, and priorities &#8212; I'll recommend the best Mumbai localities for your home.</p>
+        <div class="examples">
+          <button class="eq" onclick="quickAsk(this)">My office is in Parel. Need a 2 BHK for a family with kids, budget &#x20b9;200L</button>
+          <button class="eq" onclick="quickAsk(this)">Work from home, want something quiet near nature, budget &#x20b9;80L</button>
+          <button class="eq" onclick="quickAsk(this)">Single professional, office in BKC, &#x20b9;150L, want metro connectivity &amp; nightlife</button>
+        </div>
+      </div>
+    </div>
+    <div class="input-bar">
+      <textarea id="chat-input" placeholder="Describe what you're looking for in a home&#8230;" onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">&#10148;</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Conversation history ──
+let history = [];
+
+// ── Check API key on load ──
+window.addEventListener('DOMContentLoaded', () => {
+  if (!ENV.GEMINI_API_KEY || ENV.GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+    document.getElementById('key-banner').classList.add('show');
+  }
+  document.getElementById('chat-input').addEventListener('input', function(){
+    this.style.height = '44px';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+});
+
+function toggleChip(el) { el.classList.toggle('on'); }
+
+function quickAsk(el) {
+  document.getElementById('chat-input').value = el.textContent.trim();
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+// Build message from sidebar preferences
+function buildAndAsk() {
+  const parts = [];
+  const office    = document.getElementById('p-office').value;
+  const budget    = document.getElementById('p-budget').value;
+  const bhk       = document.getElementById('p-bhk').value;
+  const lifestyle = document.getElementById('p-lifestyle').value;
+  const priorities = [...document.querySelectorAll('.chip.on')].map(c => c.textContent.trim());
+
+  const userContext = `
+USER REQUIREMENTS:
+
+Office Location: ${office}
+Budget: ₹${budget} Lakhs
+BHK: ${bhk}
+Lifestyle: ${lifestyle}
+
+User question: ${text}
+`;
+
+  if (office)            parts.push(`My office is at ${office}`);
+  if (budget)            parts.push(`my budget is \u20b9${budget} Lakhs`);
+  if (bhk)               parts.push(`I need a ${bhk}`);
+  if (lifestyle)         parts.push(`I am a ${lifestyle.toLowerCase()}`);
+  if (priorities.length) parts.push(`my priorities are: ${priorities.join(', ')}`);
+
+  if (!parts.length) {
+    document.getElementById('chat-input').value = "I'm looking for a home in Mumbai. What localities would you recommend?";
+  } else {
+    document.getElementById('chat-input').value = parts.join(', ') + '.';
+  }
+  sendMessage();
+}
+
+// ── Main send ──
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = '44px';
+
+  // Hide welcome
+  document.getElementById('welcome').style.display = 'none';
+
+  appendMessage('user', text);
+  history.push({ role: 'user', parts: [{ text }] });
+
+  const typingId = appendTyping();
+  setButtons(true);
+
+  // Build region context for Gemini
+  const regionCtx = MUMBAI_DATA.regions.map(r =>
+    `${r.region}: \u20b9${Math.round(r.psf)}/sqft, 1BHK=\u20b9${r.bhk1}L, 2BHK=\u20b9${r.bhk2}L, 3BHK=\u20b9${r.bhk3}L, ready=${r.readyPct}%`
+  ).join('\n');
+
+  const systemInstruction = `You are a professional Mumbai real estate advisor.
+Your job is to recommend the BEST localities based on the user's needs.
+When recommending areas you MUST explain in depth.
+For EACH locality include:
+1. Why this area fits the user's requirement
+2. Pros of living there
+3. Cons of living there
+4. Connectivity (train line, metro, highways)
+5. Commute time to the workplace
+6. Lifestyle suitability (families, professionals etc.)
+7. Approx price range
+Always give structured analysis.
+Format your answer like this:
+## 1. Locality Name
+Why it fits:
+...
+Pros:
+• ...
+• ...
+Cons:
+• ...
+• ...
+Connectivity:
+• Train:
+• Metro:
+• Highway:
+
+Commute to office:
+...
+
+Price Range:
+...
+
+Then end with:
+
+**Best pick:** <locality name> and explain why.
+
+PROPERTY DATA (use these exact prices):
+${regionCtx}
+
+Price bands: Budget (green) \u2264\u20b97,886/sqft | Mid (yellow) \u20b97,887\u2013\u20b920,000/sqft | Premium (blue) >\u20b920,000/sqft
+
+MUMBAI CONNECTIVITY:
+- Western Railway (WR): Churchgate\u2192Virar, serves all western suburbs. Fast trains skip stations.
+- Central Railway (CR): CST\u2192Kalyan/Kasara, serves eastern suburbs.
+- Harbour Line: CST\u2192Panvel, serves Navi Mumbai. ~30\u201350 min to city.
+- Metro Line 1: Versova\u2013Andheri\u2013Ghatkopar (35 min end-to-end)
+- Metro Line 2A/7: Dahisar\u2013Andheri\u2013Ghatkopar
+- Eastern Express Highway: South Mumbai \u2194 Mulund/Thane
+- Western Express Highway: South Mumbai \u2194 Borivali/Mira Road
+- Sion\u2013Panvel Highway: connects Sion to Navi Mumbai
+- Parel/Lower Parel: 10 min to Dadar by WR, close to Eastern EXP
+- BKC: 15 min from Bandra (WR), Kurla (CR+harbour), Chembur; future Metro 2B
+- Thane to South Mumbai: 45\u201355 min by fast train (CR)
+- Borivali to South Mumbai: ~45 min fast train (WR)
+- Powai: 10 min to Andheri East, 20 min to BKC by road
+
+LOCALITY INSIGHTS:
+- Powai: Hiranandani township, IT/startup hub, Powai Lake, international schools (DAIS, Hiranandani Foundation), safe, cosmopolitan
+- Kharghar: Wide planned roads, Central Park (250 acres), golf course, serene, family paradise, affordable
+- Belapur: CBD Belapur IT offices, Parsik Hills trekking, quiet residential, planned sectors
+- Chembur: Diamond Garden, Bhakti Park, rapidly improving, upcoming Metro, Eastern EXP access
+- Mulund West: "Prince of Suburbs", near Sanjay Gandhi National Park, clean air, Nirmal Lifestyle Mall
+- Borivali: Adjacent to SGNP (biggest national park in a city globally), Borivali Lake, family-friendly
+- Nerul: Nerul Lake, Rock Garden, planned sector layout, excellent for families
+- Andheri West: Cosmopolitan, Infiniti/Mega/Link Road malls, vibrant restaurant scene
+- Bandra West: Most aspirational suburb, Bandstand promenade, Mount Mary Church, top restaurants/cafes
+- Worli: Worli Sea Face, luxury, upcoming coastal road, Metro 2B
+- Thane West: Masunda & Upvan lakes, Viviana/Korum malls, large township options, excellent social infra
+- Goregaon East: Film City (SRK, etc.), Oberoi Mall, mix of mid/premium, WR & Metro connectivity
+- Kandivali West: Mahindra Gardens, Thakur Village, peaceful, good schools, affordable mid-segment
+- Mira Road: Budget option, Maxus/Bhayandar malls, growing infra, family communities
+- Dombivali: Budget family suburb, good schools (DAV, etc.), peaceful, CR fast trains
+- Kalyan West: Affordable, large apartments, good schools, CR access
+
+RESPONSE FORMAT:
+- Recommend exactly 3 localities in order of best fit
+- For each: mention the specific commute route+time to their office, exact price from the data, and 2-3 specific local advantages (name actual parks, lakes, schools, malls)
+- Be warm, personal, and data-driven
+- Respect budget — only suggest within 25% above budget
+- Format with ## Locality Name as section headers, bullet points for reasons
+- End with "**Best pick:** [name] because [reason]"`;
+
+  // Gemini API call
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${ENV.GEMINI_MODEL}:generateContent?key=${ENV.GEMINI_API_KEY}`;
+
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemInstruction }] },
+        contents: history,
+        generationConfig: { maxOutputTokens: 4000, temperature: 0.6 }
+      })
+    });
+
+    const data = await resp.json();
+    removeTyping(typingId);
+
+    if (data.error) {
+      const errMsg = data.error.message || 'Unknown error';
+      appendMessage('ai', `\u26a0\ufe0f Gemini API error: ${errMsg}. Check your API key in env.js.`);
+    } else {
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received.';
+      history.push({ role: 'model', parts: [{ text: reply }] });
+      appendMessage('ai', reply);
+    }
+  } catch (err) {
+    removeTyping(typingId);
+    appendMessage('ai', '\u26a0\ufe0f Could not reach Gemini. Check your internet connection and API key in env.js.');
+  }
+
+  setButtons(false);
+}
+
+// ── DOM helpers ──
+function appendMessage(role, text) {
+  const msgs = document.getElementById('messages');
+  const div  = document.createElement('div');
+  div.className = `msg ${role === 'user' ? 'user' : 'ai'}`;
+  const av   = role === 'user' ? 'You' : '&#10022;';
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const bodyHtml = role === 'ai'
+    ? `<div class="bubble ai-resp">${formatAI(text)}</div><div class="msg-time">${time}</div>`
+    : `<div class="bubble">${escHtml(text)}</div><div class="msg-time">${time}</div>`;
+  div.innerHTML = `<div class="avatar">${av}</div><div class="bubble-wrap">${bodyHtml}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function formatAI(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    // Unescape our deliberate HTML entities after escaping
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/^## (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^# (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^\- (.+)$/gm, '&bull; $1<br>')
+    .replace(/^\* (.+)$/gm, '&bull; $1<br>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function appendTyping() {
+  const msgs = document.getElementById('messages');
+  const id   = 'ty-' + Date.now();
+  const div  = document.createElement('div');
+  div.className = 'msg ai'; div.id = id;
+  div.innerHTML = `<div class="avatar">&#10022;</div><div class="bubble-wrap"><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+function removeTyping(id) { document.getElementById(id)?.remove(); }
+
+function setButtons(loading) {
+  document.getElementById('send-btn').disabled  = loading;
+  document.getElementById('ask-btn').disabled   = loading;
+}
+</script>
+</body>
+</html>
