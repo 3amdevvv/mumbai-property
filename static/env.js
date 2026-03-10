@@ -10,7 +10,8 @@
 // ═══════════════════════════════════════════════════════
 
 const ENV = {
-  GEMINI_API_KEY : "",
+  GEMINI_API_KEY : "AIzaSyAdrHzfkj2CglriTL-BTbf3BhPCLVqCHSm",
   GEMINI_MODEL   : "gemini-2.5-flash",
 
 };
+
