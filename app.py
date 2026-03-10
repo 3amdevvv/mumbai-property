@@ -28,15 +28,15 @@ CORS(app)  # Allow frontend on any port to call this API
 
 @app.route('/')
 def home():
-    return render_template("ai-advisor")
+    return render_template("ai-advisor.html")
 
 @app.route('/budget')
 def budget_page():
-    return render_template("budget")
+    return render_template("budget.html")
 
 @app.route('/map')
 def map_page():
-    return render_template("map")
+    return render_template("map.html")
 
 # ──────────────────────────────────────────
 #  1. LOAD & PREPARE DATA (runs once on startup)
@@ -229,3 +229,4 @@ if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
 
     app.run(host="0.0.0.0", port=port)
+
